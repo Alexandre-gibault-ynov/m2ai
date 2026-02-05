@@ -1,23 +1,23 @@
-# TimeTravel Agency — Webapp immersive de voyage temporel
+# TimeTravel Agency — Immersive Time-Travel Luxury Web App
 
-Application React + Tailwind CSS pour une agence fictive de voyages temporels de luxe.
+A React + Tailwind CSS application for a fictional premium time-travel agency.
 
-## Aperçu fonctionnel
+## Features
 
-- Landing page immersive avec hero visuel, branding premium et CTA.
-- Galerie interactive de destinations (Paris 1889, Crétacé, Florence 1504).
-- Modale de détails pour chaque destination (points forts, expériences, gamme de prix fictive).
-- Widget chatbot IA (mode mock local) avec ton premium, FAQ, recommandations et simulation de réponses.
-- Quiz de recommandation (personnalisation automatique de la destination suggérée).
-- Formulaire de pré-réservation avec validation basique et confirmation mock.
-- Animations fluides (Framer Motion), transitions douces et UX mobile-first.
+- Immersive landing page with a visual hero, premium branding, and clear CTAs.
+- Interactive destination gallery (Paris 1889, Cretaceous, Florence 1504).
+- Detailed destination modal (highlights, experiences, and coherent fictional pricing).
+- Floating AI chatbot widget (local mock mode) with premium tone, FAQ behavior, and destination guidance.
+- Recommendation quiz (automatic personalization of the suggested destination).
+- Optional pre-booking form with basic validation and mock confirmation.
+- Smooth Framer Motion animations and mobile-first responsive UX.
 
 ## Stack
 
 - **Frontend**: React + Vite
-- **UI**: Tailwind CSS
+- **Styling**: Tailwind CSS
 - **Animations**: Framer Motion
-- **Icônes**: lucide-react
+- **Icons**: lucide-react
 
 ## Installation
 
@@ -25,20 +25,20 @@ Application React + Tailwind CSS pour une agence fictive de voyages temporels de
 npm install
 ```
 
-## Lancer en local
+## Run locally
 
 ```bash
 npm run dev
 ```
 
-## Build production
+## Production build
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Structure
+## Project structure
 
 ```text
 src/
@@ -53,15 +53,15 @@ src/
   styles.css
 ```
 
-## Déploiement
+## Deployment
 
-Compatible avec **Vercel** ou **Netlify** (projet statique Vite).
+Compatible with **Vercel** or **Netlify** (static Vite app).
 
 - Build command: `npm run build`
 - Output directory: `dist`
 
-## Évolutions suggérées
+## Suggested next steps
 
-- Connecter le chatbot à un provider IA réel (OpenRouter / Mistral API).
-- Ajouter un système d’authentification + historique de réservations.
-- Ajouter du contenu vidéo auto-hébergé pour le hero.
+- Connect the chatbot to a real AI provider (OpenRouter / Mistral API).
+- Add authentication and booking history.
+- Add self-hosted video content for the hero section.
