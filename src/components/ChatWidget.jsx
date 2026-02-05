@@ -50,6 +50,7 @@ function ChatWidget({ destinations }) {
   const [open, setOpen] = useState(true);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [providerState, setProviderState] = useState('ready');
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -79,14 +80,20 @@ function ChatWidget({ destinations }) {
           })
         : getFallbackResponse(userText, destinations);
 
+      setProviderState('ready');
       setMessages((prev) => [...prev, { role: 'assistant', text: aiText }]);
     } catch (error) {
       const fallbackText = getFallbackResponse(userText, destinations);
+      const rateLimited = error?.status === 429 || String(error?.message || '').includes('429');
+
+      setProviderState(rateLimited ? 'rate_limited' : 'degraded');
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          text: `I cannot reach the live AI provider right now, so I am switching to local concierge mode. ${fallbackText}`,
+          text: rateLimited
+            ? `The live AI provider is temporarily rate-limited (429). Please wait a few seconds and try again. In the meantime: ${fallbackText}`
+            : `I cannot reach the live AI provider right now, so I am switching to local concierge mode. ${fallbackText}`,
         },
       ]);
       console.error(error);
@@ -111,7 +118,15 @@ function ChatWidget({ destinations }) {
                 <p className="flex items-center gap-2 text-sm font-medium text-gold">
                   <Bot size={16} /> Agent IA — Chronos
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-400">{configured ? 'Live AI provider: OpenRouter' : 'Local fallback mode'}</p>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  {configured
+                    ? providerState === 'rate_limited'
+                      ? 'Live AI provider: OpenRouter (rate limited)'
+                      : providerState === 'degraded'
+                        ? 'Live AI provider: OpenRouter (temporary fallback)'
+                        : 'Live AI provider: OpenRouter'
+                    : 'Local fallback mode (missing API key)'}
+                </p>
               </div>
               <button onClick={() => setOpen(false)} aria-label="close chat">
                 <X size={16} />

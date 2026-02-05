@@ -44,6 +44,11 @@ Environment variables:
 
 > Note: this project currently calls OpenRouter from the client for demo speed. For production, move API calls behind a secure backend proxy to keep secrets private.
 
+## Chatbot troubleshooting
+
+- If the header shows `Local fallback mode (missing API key)`, verify `VITE_OPENROUTER_API_KEY` in `.env` and restart `npm run dev`.
+- If you receive `429` responses, your provider/model is rate-limited. Wait a few seconds, retry, or switch to a less constrained model in `VITE_OPENROUTER_MODEL`.
+
 ## Run locally
 
 ```bash

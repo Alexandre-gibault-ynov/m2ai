@@ -8,6 +8,8 @@ You help users:
 - propose coherent fictional prices in EUR.
 Keep answers concise (2-6 sentences), premium in tone, and practical.`;
 
+const PLACEHOLDER_KEY = 'your_openrouter_api_key_here';
+
 function buildContext(destinations) {
   return destinations
     .map(
@@ -17,12 +19,40 @@ function buildContext(destinations) {
     .join('\n');
 }
 
+function resolveApiKey() {
+  const key = import.meta.env.VITE_OPENROUTER_API_KEY?.trim();
+  if (!key || key === PLACEHOLDER_KEY) return null;
+  return key;
+}
+
 export function hasRealProviderConfig() {
-  return Boolean(import.meta.env.VITE_OPENROUTER_API_KEY);
+  return Boolean(resolveApiKey());
+}
+
+async function requestChatCompletion({ apiKey, endpoint, appName, model, payload }) {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': appName,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    const error = new Error(`OpenRouter error (${response.status}): ${details}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
 }
 
 export async function askTravelAgent({ message, history, destinations }) {
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  const apiKey = resolveApiKey();
   const model = import.meta.env.VITE_OPENROUTER_MODEL || 'mistralai/mistral-small-3.1-24b-instruct:free';
   const endpoint = import.meta.env.VITE_OPENROUTER_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions';
   const appName = import.meta.env.VITE_APP_NAME || 'TimeTravel Agency';
@@ -34,37 +64,33 @@ export async function askTravelAgent({ message, history, destinations }) {
   const destinationContext = buildContext(destinations);
   const compactHistory = history.slice(-8).map((item) => ({ role: item.role, content: item.text }));
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': appName,
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.8,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'system',
-          content: `Available destinations:\n${destinationContext}`,
-        },
-        ...compactHistory,
-        { role: 'user', content: message },
-      ],
-    }),
-  });
+  const payload = {
+    model,
+    temperature: 0.8,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'system',
+        content: `Available destinations:\n${destinationContext}`,
+      },
+      ...compactHistory,
+      { role: 'user', content: message },
+    ],
+  };
 
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`OpenRouter error (${response.status}): ${details}`);
+  let data;
+  try {
+    data = await requestChatCompletion({ apiKey, endpoint, appName, model, payload });
+  } catch (error) {
+    if (error.status === 429) {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      data = await requestChatCompletion({ apiKey, endpoint, appName, model, payload });
+    } else {
+      throw error;
+    }
   }
 
-  const data = await response.json();
   const text = data?.choices?.[0]?.message?.content?.trim();
-
   if (!text) {
     throw new Error('Provider returned an empty response.');
   }
